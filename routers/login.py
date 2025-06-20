@@ -5,6 +5,9 @@ import json
 from passlib.context import CryptContext
 import os
 from fastapi import APIRouter
+from datetime import datetime, timedelta
+from typing import Optional
+
 
 SECRET_KEY = "a_very_secret_key_here"
 ALGORITHM = "HS256"
@@ -36,8 +39,19 @@ def login(user: User):
             result = verify_password(user.password,row['password'])
             if result :
                 print("Match")
+                access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+                token = create_access_token(data={"sub": row["username"]}, expires_delta=access_token_expires)
+                
+                with open("access-token.json", "r") as f:
+                    accessToken = json.load(f)
+                    accessToken.append(token)
+                    
+                with open("access-token.json", "w") as f:
+                    json.dump(accessToken, f, indent=4)  # indent เพื่อให้ดูสวย
+                
                 return {
-                    "success" : True
+                    "success" : True,
+                    "token" : token
                 }
 
 
@@ -53,3 +67,14 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
+# jwt token
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt

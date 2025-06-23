@@ -1,5 +1,4 @@
-import hashlib
-from jose import JWTError, jwt
+from jose import jwt
 from pydantic import BaseModel
 import json
 from passlib.context import CryptContext
@@ -7,10 +6,12 @@ import os
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 from typing import Optional
+from dotenv import load_dotenv
 
+load_dotenv()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
+expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+expire = int(expire)
 secret = os.getenv("SECRET_KEY")
 algorithm = os.getenv("ALGORITHM")
 
@@ -40,7 +41,7 @@ def login(user: User):
             result = verify_password(user.password,row['password'])
             if result :
                 print("Match")
-                access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+                access_token_expires = timedelta(minutes=expire)
                 token = create_access_token(data={"sub": row["username"]}, expires_delta=access_token_expires)
                 
                 with open("access-token.json", "r") as f:

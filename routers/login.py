@@ -9,9 +9,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 
-SECRET_KEY = "a_very_secret_key_here"
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+secret = os.getenv("SECRET_KEY")
+algorithm = os.getenv("ALGORITHM")
 
 router = APIRouter()
 
@@ -76,5 +77,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, secret, algorithm=algorithm)
     return encoded_jwt
+
